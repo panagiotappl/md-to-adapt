@@ -36,7 +36,7 @@ def make_content_obj(co_name):
 
 def make_article(article_name, co_name):
     return {
-        "_id": "a-" + co_name.replace(' ', '-') + '-' + article_name.replace(' ', '-'),
+        "_id": 'a-' + article_name.replace(' ', '-'),
         "_parentId": "co-" + co_name.replace(' ', '-'),
         "_type": "article",
         "_classes": "",
@@ -46,22 +46,22 @@ def make_article(article_name, co_name):
         "instruction": ""
     }
 
-def make_block(idx, article_name, co_name):
-    b_id = "b-" + article_name.replace(' ', '-') + "-" + str(idx)
+def make_block(idx, block_name, article_name):
+    b_id = "b-" + block_name.replace(' ', '-') + "-" + str(idx)
     return {
         "_id": b_id,
-        "_parentId": "a-" + co_name.replace(' ', '-') + '-' + article_name.replace(' ', '-'),
+        "_parentId": 'a-' + article_name.replace(' ', '-'),
         "_type": "block",
         "_classes": "",
         "title": b_id,
-        "displayTitle": article_name,
+        "displayTitle": block_name,
         "body": "",
         "instruction": "",
         "_trackingId": idx
     }
 
-def make_component(idx, article_name):
-    suf = article_name.replace(' ', '-') + "-" + str(idx)
+def make_component(idx, block_name):
+    suf = block_name.replace(' ', '-') + "-" + str(idx)
     c_id = "c-" + suf
     b_id = "b-" + suf
     return {
@@ -71,7 +71,7 @@ def make_component(idx, article_name):
         "_component": "text",
         "_classes": "",
         "_layout": "full",
-        "title": article_name,
+        "title": block_name,
         "displayTitle": None,
         "instruction": None,
         "_pageLevelProgress": {
@@ -102,18 +102,19 @@ def create_content_object(adapt_dir, md_dir, co_name):
     print('Adding content object: ' + co_name)
     append_to_json(make_content_obj(co_name), co_file)
 
-    for article_name, md_relpath in subj_to_files:
-        print('Adding article: ' + article_name)
-        append_to_json(make_article(article_name, co_name), article_file)
+    article_name = co_name
+    print('Adding article: ' + article_name)
+    append_to_json(make_article(article_name, co_name), article_file)
 
+    for block_name, md_relpath in subj_to_files:
         md_path = os.path.join(md_dir, 'docs', md_relpath)
         with open(md_path, 'r') as f:
             md_block = f.read()
 
-        print('Adding block: ' + md_block[:30] + '...')
+        print('Adding block: ' + block_name + '...')
         md_block = md_block.replace('../assets/', 'course/en/images/')
-        append_to_json(make_block(cur_bid, article_name, co_name), block_file)
-        component = make_component(cur_bid, article_name)
+        append_to_json(make_block(cur_bid, block_name, article_name), block_file)
+        component = make_component(cur_bid, block_name)
         component['body'] = markdown2.markdown(md_block)
         append_to_json(component, component_file)
         cur_bid += 1
