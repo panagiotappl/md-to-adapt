@@ -79,7 +79,7 @@ def make_component(idx, block_name):
         }
     }
 
-def create_content_object(adapt_dir, md_dir, co_name):
+def create_content_object(adapt_dir, md_dir, co_name, include_blk, exclude_blk):
     co_file = os.path.join(adapt_dir, 'src', 'course', 'en', 'contentObjects.json')
     article_file = os.path.join(adapt_dir, 'src', 'course', 'en', 'articles.json')
     block_file = os.path.join(adapt_dir, 'src', 'course', 'en', 'blocks.json')
@@ -107,11 +107,14 @@ def create_content_object(adapt_dir, md_dir, co_name):
     append_to_json(make_article(article_name, co_name), article_file)
 
     for block_name, md_relpath in subj_to_files:
+        if (include_blk and block_name not in include_blk) or block_name in exclude_blk:
+            print('Ignoring block: ' + block_name)
+            continue
         md_path = os.path.join(md_dir, 'docs', md_relpath)
         with open(md_path, 'r') as f:
             md_block = f.read()
 
-        print('Adding block: ' + block_name + '...')
+        print('Adding block: ' + block_name)
         md_block = md_block.replace('../assets/', 'course/en/images/')
         append_to_json(make_block(cur_bid, block_name, article_name), block_file)
         component = make_component(cur_bid, block_name)
@@ -124,8 +127,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('md_dir', help='markdown directory')
     parser.add_argument('adapt_dir', help='Adapt course directory')
-    parser.add_argument('co_names', help='name of content objects to add to course (ie. Lecture)', nargs='+')
+    parser.add_argument('co_names', help='name of content objects to add to course (ie. Lecture) ' +
+        'optionally also specifying which blocks to include or exclude in that (ie. Lecture/Introduction,Creating a lecture ' +
+        'or Lecture/-Introduction to add all blocks except one)', nargs='+')
     args = parser.parse_args()
 
     for co_name in args.co_names:
-        create_content_object(args.adapt_dir, args.md_dir, co_name)
+        include_blk = []
+        exclude_blk = []
+        if '/' in co_name:
+            blk_args = co_name[co_name.index('/') + 1:]
+            co_name = co_name[:co_name.index('/')]
+            for blk_arg in blk_args.split(','):
+                if blk_arg.startswith('-'):
+                    exclude_blk.append(blk_arg[1:])
+                else:
+                    include_blk.append(blk_arg)
+        create_content_object(args.adapt_dir, args.md_dir, co_name, include_blk, exclude_blk)
