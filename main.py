@@ -1,12 +1,15 @@
 import argparse
 import yaml
 import json
+import os
 import os.path
 import markdown2
 
 def append_to_json(obj, fpath):
-    with open(fpath, 'r') as f:
-        cnt = json.load(f)
+    cnt = []
+    if os.path.exists(fpath):
+        with open(fpath, 'r') as f:
+            cnt = json.load(f)
     cnt.append(obj)
     with open(fpath, 'w') as f:
         json.dump(cnt, f, indent=4)
@@ -80,18 +83,21 @@ def make_component(idx, block_name):
     }
 
 def create_content_object(adapt_dir, md_dir, co_name, include_blk, exclude_blk):
-    co_file = os.path.join(adapt_dir, 'src', 'course', 'en', 'contentObjects.json')
-    article_file = os.path.join(adapt_dir, 'src', 'course', 'en', 'articles.json')
-    block_file = os.path.join(adapt_dir, 'src', 'course', 'en', 'blocks.json')
-    component_file = os.path.join(adapt_dir, 'src', 'course', 'en', 'components.json')
+    output_dir = os.path.join(adapt_dir, 'src', 'course', 'en')
+    os.makedirs(output_dir, exist_ok=True)
+    co_file = os.path.join(output_dir, 'contentObjects.json')
+    article_file = os.path.join(output_dir, 'articles.json')
+    block_file = os.path.join(output_dir, 'blocks.json')
+    component_file = os.path.join(output_dir, 'components.json')
     md_yaml = yaml.load(open(os.path.join(md_dir, 'mkdocs.yml')), Loader=yaml.BaseLoader)
 
-    with open(block_file, 'r') as f:
-        blocks = json.load(f)
-        if blocks:
-            cur_bid = blocks[-1]['_trackingId'] + 1
-        else:
-            cur_bid = 1
+    cur_bid = 1
+    blocks = []
+    if os.path.exists(block_file):
+        with open(block_file, 'r') as f:
+            blocks = json.load(f)
+            if blocks:
+                cur_bid = blocks[-1]['_trackingId'] + 1
 
     all_files = [i for i in md_yaml['nav'] if co_name in i.keys()]
     subj_to_files = list()
