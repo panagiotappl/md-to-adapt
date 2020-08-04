@@ -3,7 +3,7 @@ import yaml
 import json
 import os
 import os.path
-import markdown2
+import markdown
 
 def append_to_json(obj, fpath):
     cnt = []
@@ -49,7 +49,7 @@ def make_article(article_name, co_name):
         "instruction": ""
     }
 
-def make_block(idx, block_name, article_name):
+def make_block(idx, block_name, article_name, override_title=None):
     b_id = "b-" + block_name.replace(' ', '-') + "-" + str(idx)
     return {
         "_id": b_id,
@@ -122,9 +122,15 @@ def create_content_object(adapt_dir, md_dir, co_name, include_blk, exclude_blk):
 
         print('Adding block: ' + block_name)
         md_block = md_block.replace('../assets/', 'course/en/images/')
-        append_to_json(make_block(cur_bid, block_name, article_name), block_file)
+        block_title = None
+        block_lines = md_block.strip().split('\n')
+        first_line =block_lines[0].strip()
+        if first_line.startswith('# '):
+            block_title = first_line[2:]
+            md_block = '\n'.join(block_lines[1:]).strip()
+        append_to_json(make_block(cur_bid, block_name, article_name, override_title=block_title), block_file)
         component = make_component(cur_bid, block_name)
-        component['body'] = markdown2.markdown(md_block)
+        component['body'] = markdown.markdown(md_block, extensions=['admonition'])
         append_to_json(component, component_file)
         cur_bid += 1
 
