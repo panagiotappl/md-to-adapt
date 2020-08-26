@@ -136,7 +136,7 @@ def create_content_object(adapt_dir, md_dir, co_name, include_blk, exclude_blk):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Create e-learning modules.')
     parser.add_argument('md_dir', help='markdown directory')
     parser.add_argument('adapt_dir', help='Adapt course directory')
     parser.add_argument('co_names', help='name of content objects to add to course (ie. Lecture) ' +
